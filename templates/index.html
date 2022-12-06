@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FlaskApp</title>
+    <style>
+        .todo {
+            padding: 20px;
+            margin: 10px;
+            background-color: #eee;
+        }
+        .tab {
+            display: inline-block;
+            margin-left: 40px;
+            tab-size: 4;
+        }
+    </style>
+</head>
+<body onload = AllUpdate()>
+    <h1>Welcome to Food Track</h1>
+    <hr>
+    <div class="content">
+    <form method="post">
+        {% block content %}
+        <p>
+            <b><label for="food">Item Name</label></b>
+            <b style="margin-left: 1000px ;">Current Fridge Temperature:</b> <b id = "curFTemp" ></b><br>
+            <b style="margin-left: 1102px ;">Current Fridge Humidity:</b> <b id = "curFHumid" ></b>
+        </p>
+    
+        <p>
+            <input type="text" name="food" placeholder="Todo Content" required></input>
+        </p>
+        <p>
+            <b style="margin-left: 1079px ;">Current Counter Temperature:</b> <b id = "curCTemp" ></b><br>
+            <b style="margin-left: 1102px ;">Current Counter Humidity:</b> <b id = "curCHumid" ></b>
+        </p>
+        {% endblock %}
+
+        <p>
+            <label for="startDate">Produce date</label><br>
+            <input type="date" id="startDate" name="startingDate" value="2022-11-22" min="2020-01-01" max="2050-12-31"></input>
+        </p>
+        <p>
+            <input id="storage-counter" name="storage" required type="radio" value="counter">
+            <label for="storage-counter">Counter</label>
+        </p>
+        <p>
+            <input id="storage-fridge" name="storage" required type="radio" value="refrigerator">
+            <label for="storage-fridge">Fridge</label>
+        </p>
+        <button type="submit">Submit</button>
+    </form>
+    <hr>
+    <!-- <p>Item <span class="ttab"></span>  <i>Storage</i> <span class="ttab"></span> <i>Produce date</i></p> -->
+    {% for todo in pck[0] %}
+        <div class="todo">
+            <span class="tab"></span>  
+            <p>{{ todo['food'] }} <b style="margin-left: 100px;"> {{ "you placed it in: " + todo['location']}}</b> <b style="margin-left: 200px;">{{ todo['date']}} </b> 
+            <b style="margin-left: 100px;">{{ "Days in storage: "  +  todo['store_days']|string}}</b> <b style="margin-left: 100px;"> {{ "Status: " + todo['status']}}</b></p>
+            <form method="POST" action="{{ url_for('delete', id=todo['_id']) }}" >
+                <input type="submit" value="Delete Todo"
+                       onclick="return confirm('Are you sure you want to delete this entry?')">
+            </form>
+        </div>
+    {% endfor %}
+
+    </div>
+    <script>document.getElementById('startDate').valueAsDate = new Date();</script>
+   
+    <script> 
+        function fetchAndDisplayAllProcessors() {
+        const url = '/getTemp';
+        fetch(url).then((response) => {
+            if (response.status === 200){
+                response.json().then((data) => {
+                    updateTemp(data);
+                    setTimeout(() => fetchAndDisplayAllProcessors(), 1000);
+                });
+            }
+        });
+    }
+    function updateTemp(data) {
+        let tempFDate = document.getElementById('curFTemp');
+        let humidFData = document.getElementById('curFHumid');
+        let tempCDate = document.getElementById('curCTemp');
+        let humidCData = document.getElementById('curCHumid');
+        tempFDate.innerText = data["temp"];
+        humidFData.innerText = data['humid'];
+        tempCDate.innerText = data["temp"];
+        humidCData.innerText = data['humid'];
+    }
+
+    function fetchAndDisplayDays() {
+        const url = '/updateDate';
+        fetch(url).then((response) => {
+            if (response.status === 200){
+                response.json().then((data) => {
+                    setTimeout(() => fetchAndDisplayDays(), 1000 * 60 * 60 * 24);
+                    
+                });
+            }
+        });
+    }
+
+    function AllUpdate(){
+        fetchAndDisplayAllProcessors();
+        fetchAndDisplayDays();
+    }
+
+    </script>
+
+</body>
+</html>
